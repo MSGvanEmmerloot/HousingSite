@@ -40,6 +40,10 @@ namespace HousingSite.Pages
         protected int borderVal1 = 0;
         protected int borderVal2 = 0;
 
+        public enum ColorOptions { green, yellow, red };
+        protected static string[] colorStrings = new string[3] { "Green", "Yellow", "Red" };
+        public enum ConditionOptions { below, above, between };
+        protected static string[] conditionStrings = new string[3] { "Below", "Above", "Between" };
         public enum RuleParamOptions { price, area };
         protected static string[] ruleParamStrings = new string[2] { "Renting price", "Area" };
         public class RuleParams
@@ -54,7 +58,65 @@ namespace HousingSite.Pages
         }
         public List<RuleParams> ruleParams;
 
+
+        public delegate void ruleParamDelegate(RuleParams2 r, int i);
+        public class RuleParams2
+        {
+            //public int sequenceNumber
+            //{
+            //    get { return sequenceNumber; }
+            //    set { sequenceNumber = value; if (del != null) { del(this, value); } }
+            //}
+            public int sequenceNumber;
+            public bool apply;
+            public ColorOptions color;
+            public RuleParamOptions parameter;
+            public ConditionOptions condition;
+
+            public double borderVal1;
+            public double borderVal2;
+
+            public ruleParamDelegate del;
+        }
+        public List<RuleParams2> ruleParams2;
+
+        protected double testPrice = 400;
+        protected double testArea = 10;
+        protected ColorOptions defaultColor = ColorOptions.green;
+
         protected JsInterop jsInterop;
+
+        public void ShiftRuleParamList(RuleParams2 modifiedRule, int newNum)
+        {
+            int curPos = -1;
+            int swapPos = -1;
+            Console.WriteLine("Invoked delegate with " + newNum);
+            if (ruleParams2.Contains(modifiedRule))
+            {
+                int curNum = modifiedRule.sequenceNumber;
+                Console.WriteLine("Current num: " + curNum);
+                modifiedRule.sequenceNumber = newNum;
+                RuleParams2 tempRule = modifiedRule;
+                Console.WriteLine("Yeet " + modifiedRule.sequenceNumber);
+                curPos = ruleParams2.IndexOf(modifiedRule);
+                Console.WriteLine("Index of clicked row: " + curPos);
+                
+                foreach(RuleParams2 rule in ruleParams2.FindAll(s => s.sequenceNumber == newNum))
+                {
+                    Console.WriteLine(rule);
+                    if(rule != modifiedRule)
+                    {
+                        Console.WriteLine("Woop, found a match!");
+                        swapPos = ruleParams2.IndexOf(rule);
+                        rule.sequenceNumber = curNum;
+                        Console.WriteLine("Index of row to swap: " + swapPos);
+
+                        ruleParams2[curPos] = rule;
+                        ruleParams2[swapPos] = tempRule;
+                    }
+                }  
+            }
+        }
 
         protected async Task Testing()
         {
@@ -64,10 +126,6 @@ namespace HousingSite.Pages
 
         protected async Task CallJS()
         {
-            //Console.WriteLine("Calling 1");
-            //await JSRuntime.InvokeAsync<Task>("FromNet", dotNetObjectRef, "Hello");
-            //Console.WriteLine("Calling 2");
-            //await JSRuntime.InvokeAsync<Task>("FromNet2", dotNetObjectRef, "Hello Again");
             string s = await jsInterop.CallFunction1();
             Console.WriteLine("s = " + s);
 
@@ -75,66 +133,133 @@ namespace HousingSite.Pages
             Console.WriteLine("s = " + s);
         }
 
-        //public class JsInterop
-        //{
-        //    protected string resultString;
-        //    protected IJSRuntime JSRuntime { get; set; }
-        //    protected DotNetObjectReference<JsInterop> dotNetObjectRef;
-
-        //    public JsInterop(IJSRuntime IJSRuntime)
-        //    {
-        //        JSRuntime = IJSRuntime;
-        //        dotNetObjectRef = DotNetObjectReference.Create(this);
-        //        JSRuntime.InvokeAsync<Task>("SetDotNetHelper", dotNetObjectRef);
-        //    }
-
-        //    [JSInvokable]
-        //    public void FromJS(string s)
-        //    {
-        //        Console.WriteLine("Received " + s);
-        //        resultString = s;
-        //    }
-
-        //    public async Task<string> CallFunction1()
-        //    {
-        //        await JSRuntime.InvokeAsync<Task>("FromNet", "Hello");
-        //        //await JSRuntime.InvokeAsync<Task>("FromNet", dotNetObjectRef, "Hello");
-        //        return resultString;
-        //    }
-        //    public async Task<string> CallFunction2()
-        //    {
-        //        await JSRuntime.InvokeAsync<Task>("FromNet2", dotNetObjectRef, "Hello again");
-        //        return resultString;
-        //    }
-        //}
-
         protected override async Task OnInitializedAsync()
         {
             jsInterop = new JsInterop(JSRuntime);
-            //dotNetObjectRef = DotNetObjectReference.Create(dotNetObject);
 
-            ruleParams = new List<RuleParams>();
-            ruleParams.Add(new RuleParams
+            ruleParams2 = new List<RuleParams2>();
+            ruleParams2.Add(new RuleParams2
             {
-                parameter = RuleParamOptions.price,
+                
                 apply = true,
-                sign1 = "below",
-                sign2 = "between",
-                sign3 = "above",
+                color = ColorOptions.green,
+                parameter = RuleParamOptions.price,
+                condition = ConditionOptions.below,
                 borderVal1 = 400,
-                borderVal2 = 600
+                del = ShiftRuleParamList,
+                sequenceNumber = 1,
             });
-            ruleParams.Add(new RuleParams
+            ruleParams2.Add(new RuleParams2
             {
+                
+                apply = true,
+                color = ColorOptions.yellow,
                 parameter = RuleParamOptions.area,
-                apply = false,
-                sign1 = "",
-                sign2 = "",
-                sign3 = "",
-                borderVal1 = 0,
-                borderVal2 = 0
+                condition = ConditionOptions.between,
+                borderVal1 = 10,
+                borderVal2 = 20,
+                del = ShiftRuleParamList,
+                sequenceNumber = 2,
             });
         }
+
+        protected async Task CheckResultValue()
+        {            
+            double price = 20;
+            double area = 5;
+
+            //string res = CheckResult(price, area);
+            string res = CheckResult(testPrice, testArea);
+
+            Console.WriteLine("Result: " + res);
+        }
+
+        private string CheckResult(double price, double area)
+        {
+            foreach(RuleParams2 r in ruleParams2)
+            {
+                switch (r.condition)
+                {
+                    case ConditionOptions.above:
+                        if (r.parameter == RuleParamOptions.price)
+                        {
+                            if (price > r.borderVal1)
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        else if (r.parameter == RuleParamOptions.area)
+                        {
+                            if (area > r.borderVal1)
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        break;
+                    case ConditionOptions.below:
+                        if (r.parameter == RuleParamOptions.price)
+                        {
+                            if (price < r.borderVal1)
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        else if (r.parameter == RuleParamOptions.area)
+                        {
+                            if (area < r.borderVal1)
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        break;
+                    case ConditionOptions.between:                
+                        if(r.parameter == RuleParamOptions.price)
+                        {
+                            if((price > r.borderVal1 && price < r.borderVal2) || (price < r.borderVal1 && price > r.borderVal2))
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        else if(r.parameter == RuleParamOptions.area)
+                        {
+                            if ((area > r.borderVal1 && area < r.borderVal2) || (area < r.borderVal1 && area > r.borderVal2))
+                            {
+                                return r.color.ToString();
+                            }
+                        }
+                        break;
+                }
+            }
+
+            return "default";
+        }
+
+        //protected override async Task OnInitializedAsync()
+        //{
+        //    jsInterop = new JsInterop(JSRuntime);
+
+        //    ruleParams = new List<RuleParams>();
+        //    ruleParams.Add(new RuleParams
+        //    {
+        //        parameter = RuleParamOptions.price,
+        //        apply = true,
+        //        sign1 = "below",
+        //        sign2 = "between",
+        //        sign3 = "above",
+        //        borderVal1 = 400,
+        //        borderVal2 = 600
+        //    });
+        //    ruleParams.Add(new RuleParams
+        //    {
+        //        parameter = RuleParamOptions.area,
+        //        apply = false,
+        //        sign1 = "",
+        //        sign2 = "",
+        //        sign3 = "",
+        //        borderVal1 = 0,
+        //        borderVal2 = 0
+        //    });
+        //}
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
