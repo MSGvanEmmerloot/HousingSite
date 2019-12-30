@@ -1,0 +1,43 @@
+﻿@page "/map"
+
+@using HousingSite.Data
+@inherits MapRazorClass
+
+<div>
+    Location: <input type="text" @bind="place" /> Radius (km): <input type="number" @bind="radius" /><br>
+    <button class="btn btn-primary" @onclick="@(() => RedrawCircle())">Scale Grid</button><button class="btn btn-primary" @onclick="@(() => ClearMap())">Clear map</button><br />
+    @*Latitude: @latitude, longitude: @longitude*@
+</div>
+<br />
+
+Base location:
+<input type="text" @bind="baseLocation" />
+Iso distance (driving minutes):
+<input type="number" @bind="isoDist" />
+<button class="btn btn-primary" @onclick="PlotIsochrone">Plot isochrone</button>
+
+<div style="width:90%; display:flex; margin:5px">
+    <div id="myMap" @onclick="MouseClicked"></div>
+    @*<div id="printoutPanel" style="overflow:auto; height:500px; flex-grow:1"></div>*@
+    <div style="overflow:auto; height:500px; flex-grow:1">
+        <div>
+            <button class="btn btn-primary" @onclick="@(() => RouteFind_TS_WithMode("walking"))">Walk</button>
+            <button class="btn btn-primary" @onclick="@(() => RouteFind_TS_WithMode("driving"))">Drive</button>
+            <button class="btn btn-primary" @onclick="@(() => RouteFind_TS_WithMode("transit"))">Public transport</button>
+        </div>
+        <div id="printoutPanel"></div>
+    </div>
+</div>
+
+<div id="testPanel">
+    <div>Walking: <span id="testPanel-walking"></span></div>
+    <div>Driving: <span id="testPanel-driving"></span></div>
+    <div>Transit: <span id="testPanel-transit"></span></div>
+</div>
+
+<button class="btn btn-primary" @onclick="AddPin">Add pin</button>
+<button class="btn btn-primary" @onclick="DrawCircleAtAddress">Draw circle at address</button>
+@*<button class="btn btn-primary" @onclick="PinAddress">Pin for Alten</button>*@
+
+<button class="btn btn-primary" @onclick="RouteFind">Find Route</button>
+<button class="btn btn-primary" @onclick="ShowTraffic">Show traffic</button>

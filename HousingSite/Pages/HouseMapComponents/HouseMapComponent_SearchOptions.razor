@@ -1,0 +1,125 @@
+﻿@*@page "/housemap/searchoptions"*@
+<!-- HouseMapComponent SearchOptions -->
+
+<div class="card card-body">
+    <div class="row justify-content-between">
+        <div class="col-2">
+            <h3>Search options</h3>
+        </div>
+        <div class="col">
+            @*<button class="btn btn-primary" type="button" @onclick="@(() => { showSearchOptions = false; Console.WriteLine("Wot"); })">View map options</button>*@
+            @*<button class="btn btn-primary" type="button" @onclick="@(() => { showSearchOptions = false; Test(); })">View map options</button>*@
+            <button class="btn btn-primary" type="button" @onclick="@(() => { showSearchOptions = false; UpdateSearchOptions(); })">View map options</button>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>City</th>
+                <th>Minimum price</th>
+                <th>Maximum price</th>
+                <th>Minimum area</th>
+                <th>Minimum amount of bedrooms</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" @bind="city"/></td>
+                <td><input type="number" @bind="priceMin" /></td>
+                <td><input type="number" @bind="priceMax" /></td>
+                <td><input type="number" @bind="area" /></td>
+                <td><input type="number" @bind="bedrooms" /></td>
+                <td><button class="btn btn-primary" @onclick="@(() => FindHouses())">Find Houses</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <div class="row">
+        <div class="col-2">
+            Base location<br />
+            <input type="text" @bind="place" /><br />
+        </div>
+        <div class="col-6">
+            Sites to use <br />
+            @if (!viewSingleHouse)
+            {
+                @for (int s = 0; s < HouseService.housingSites.Count; s++)
+                {
+                    @if (s < HouseService.sitesChecked.Count)
+                    {
+                        var c = s;
+                        @HouseService.housingSites.Keys.ElementAt(c)
+                        <input type="checkbox" @bind="HouseService.sitesChecked[c]" />
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    #region Code
+    [Parameter] public bool showSearchOptions { get; set; }
+    [Parameter] public EventCallback<bool> showSearchOptionsChanged { get; set; }
+
+    [Parameter] public string city { get; set; }
+    [Parameter] public EventCallback<string> cityChanged { get; set; }
+
+    [Parameter] public int priceMin { get; set; }
+    [Parameter] public EventCallback<int> priceMinChanged { get; set; }
+
+    [Parameter] public int priceMax { get; set; }
+    [Parameter] public EventCallback<int> priceMaxChanged { get; set; }
+
+    [Parameter] public int area { get; set; }
+    [Parameter] public EventCallback<int> areaChanged { get; set; }
+
+    [Parameter] public int bedrooms { get; set; }
+    [Parameter] public EventCallback<int> bedroomsChanged { get; set; }
+
+    [Parameter] public string place { get; set; }
+    [Parameter] public EventCallback<string> placeChanged { get; set; }
+
+    [Parameter] public bool viewSingleHouse { get; set; }
+    [Parameter] public EventCallback<bool> viewSingleHouseChanged { get; set; }
+
+    [Parameter] public HousingSite.Data.HouseTableService HouseService { get; set; }
+    [Parameter] public EventCallback<HousingSite.Data.HouseTableService> HouseServiceChanged { get; set; }
+
+    public async Task UpdateParentVariables()
+    {
+        await cityChanged.InvokeAsync(@city);
+        await priceMinChanged.InvokeAsync(@priceMin);
+        await priceMaxChanged.InvokeAsync(@priceMax);
+        await areaChanged.InvokeAsync(@area);
+        await bedroomsChanged.InvokeAsync(@bedrooms);
+        await placeChanged.InvokeAsync(@place);
+        //await viewSingleHouseChanged.InvokeAsync(@viewSingleHouse);
+        await HouseServiceChanged.InvokeAsync(@HouseService);
+    }
+
+    private async void UpdateSearchOptions()
+    {
+        await UpdateParentVariables();
+        await showSearchOptionsChanged.InvokeAsync(@showSearchOptions);
+    }
+
+    //[Parameter] public EventCallback TestCallback { get; set; }
+    //private async Task Test()
+    //{
+    //    await UpdateParentVariables();
+
+    //    await showSearchOptionsChanged.InvokeAsync(false);
+    //    await TestCallback.InvokeAsync(null);
+    //}
+
+    [Parameter] public EventCallback FindHousesCallback { get; set; }
+    private async Task FindHouses()
+    {
+        await UpdateParentVariables();
+
+        await FindHousesCallback.InvokeAsync(null);
+    }
+    #endregion
+}

@@ -1,0 +1,75 @@
+﻿@page "/test"
+
+@using HousingSite.Data
+@inherits TestingRazorClass
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Green</th>
+                <th></th>
+                <th>Yellow</th>
+                <th></th>
+                <th>Red</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int r = 0; r < ruleParams.Count; r++)
+            {
+                var cur = r;
+            <tr>
+                <td>
+                    @if (@ruleParams[cur].apply == true)
+                    {
+                        <span>@ruleParamStrings[cur] (in use)</span>
+                    }
+                    else
+                    {
+                        <span>@ruleParamStrings[cur]</span>
+                    }
+                </td>
+                <td>@ruleParams[cur].sign1</td>
+                <td><input type="number" @bind="ruleParams[cur].borderVal1" style="width:50px"/></td>
+                <td>@ruleParams[cur].sign2</td>
+                <td><input type="number" @bind="ruleParams[cur].borderVal2" style="width:50px"/></td>
+                <td>@ruleParams[cur].sign3</td>
+                <td>
+                    @if (@ruleParams[cur].apply == true)
+                    {
+                        <button class="btn btn-primary" @onclick="@(() => Validate(cur))">Update this rule</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="@(() => Validate(cur))">Validate and use this rule</button>
+                    }
+
+                    @if (@ruleParams[cur].parameter == RuleParamOptions.price)
+                    {
+                        <button class="btn btn-primary" @onclick="@(() => SetDefaultValues(cur))">Set default values</button>
+                    }
+                </td>
+            </tr>
+            }
+            @*<tr>
+                <td>Price</td>
+                <td>@sign1</td>
+                <td><input type="number" @bind="borderVal1" /></td>
+                <td>@sign2</td>
+                <td><input type="number" @bind="borderVal2" /></td>
+                <td>@sign3</td>
+                <td><button class="btn btn-primary" @onclick="@(() => Validate())">Validate</button></td>
+            </tr>*@
+        </tbody>
+    </table>
+
+    @*<div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow=@progress1 aria-valuemin="0" aria-valuemax="100" style="width: @progress1%"></div>
+    </div>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow=@progress2 aria-valuemin="0" aria-valuemax="100" style="width: @progress2%"></div>
+    </div>*@
+
+@*<button class="btn btn-primary" @onclick="@(() => Testing())">Test</button>*@
+<TestComponent />

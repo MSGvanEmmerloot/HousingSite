@@ -1,0 +1,135 @@
+﻿@*@page "/housemap_wComponents"
+
+    @using HousingSite.Data
+    @using HousingSite.Pages.HouseMapComponents
+    @inherits HouseMapClass
+
+    <div>
+        <button class="btn btn-primary" type="button" @onclick="@(() => GetChildComponentVariables())">Update</button>
+        @if (@HouseCalculationsFinished == false)
+        {
+            <div class="card card-body">
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow=@progress1Fill aria-valuemin="0" aria-valuemax="100" style="width: @progress1Fill%">@progress1Value of @progress1Max sites checked</div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow=@progress2Fill aria-valuemin="0" aria-valuemax="100" style="width: @progress2Fill%">@progress2Value of @progress2Max houses added to queue</div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow=@progress3Fill aria-valuemin="0" aria-valuemax="100" style="width: @progress3Fill%">@progress3Value of @progress3Max houses added to map</div>
+                </div>
+            </div>
+            @*<HouseMapComponent_Progress />@
+    }
+    else if (@showSearchOptions == true)
+    {
+    <HouseMapComponent_SearchOptions @ref="SearchOptions"
+                                     @bind-showSearchOptions="showSearchOptions"
+                                     @bind-city="city"
+                                     @bind-priceMin="priceMin"
+                                     @bind-priceMax="priceMax"
+                                     @bind-area="area"
+                                     @bind-bedrooms="bedrooms"
+                                     @bind-place="place"
+                                     @bind-viewSingleHouse="viewSingleHouse"
+                                     @bind-HouseService="HouseService"
+                                     FindHousesCallback="@(() => FindHouses())" />
+    //TestCallback="@(() => { Console.WriteLine("Execute test"); StateHasChanged(); Test(); })"
+    //TestCallback="() => Test()"
+    //FindHousesCallback="() => FindHouses()"/>
+    }
+    else
+    {
+    <HouseMapComponent_MapOptions @ref="MapOptions"
+                                  @bind-showSearchOptions="showSearchOptions"
+                                  @bind-selectedHouseFilter="selectedHouseFilter"
+                                  @bind-selectedTravelMode="selectedTravelMode"
+                                  @bind-selectedCalculationMode="selectedCalculationMode"
+                                  @bind-travelDistance="travelDistance"
+                                  @bind-travelTime="travelTime"
+                                  @bind-place="place"
+                                  @bind-radius="radius"
+                                  @bind-AddUserLocationOnClick="AddUserLocationOnClick"
+                                  DrawIsochroneAtAddressCallback="@(() => DrawIsochroneAtAddress())"
+                                  PlacePinAtAddressCallback="@(() => PlacePinAtAddress())"
+                                  DrawCircleAtAddressCallback="@(() => DrawCircleAtAddress())"
+                                  ClearMapCallback="@(() => ClearMap())"
+                                  ToggleAddUserLocationOnClickCallback="@(() => ToggleAddUserLocationOnClick())" />
+    }
+    </div>
+    <br />
+
+    <div style="width:100%; display:flex; margin:5px">
+        @if (!viewSingleHouse)
+        {
+            <div id="houseDataTable" style="width:30%; overflow:auto; height:500px; border:1px solid">
+                @for (int h = 0; h < houseData.Count; h++)
+                {
+                    var curH = h;
+                    @if (housesInRadius[curH] || selectedHouseFilter == HouseFilters.all)
+                    {
+                        <div id="house@h" style="border:solid; margin:2px">
+                            <h6>House @h: @houseData[h].title</h6>
+                            @houseData[h].street, @houseData[h].postalCode<br />
+                            <b>@houseData[h].price voor @houseData[h].area</b>
+                            <button class="btn btn-primary" @onclick="@(() => SetChosenHouse(curH))">See more..</button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            @if (selectedHouse != -1 && selectedHouse < houseData.Count)
+            {
+                <div style="width:30%; overflow:auto; height:500px; border:1px solid">
+                    <button class="btn btn-primary" @onclick="SwitchLayer">Return to overview</button><br />
+                    <h6>House @selectedHouse: @houseData[selectedHouse].title</h6>
+                    <p>
+                        @houseData[selectedHouse].street, @houseData[selectedHouse].postalCode<br />
+                        @if (@houseData[selectedHouse].neighbourhood != "")
+                        {@houseData[selectedHouse].neighbourhood<br>}
+                        <b>@houseData[selectedHouse].price voor @houseData[selectedHouse].area</b>
+                        @if (@houseData[selectedHouse].available != "")
+                        {<span> met @houseData[selectedHouse].bedrooms slaapkamer(s)</span>}<br />
+                        @if (@houseData[selectedHouse].available != "")
+                        {<span>Beschikbaar vanaf @houseData[selectedHouse].available</span>}
+                        @if (@houseData[selectedHouse].placed != "")
+                        {<span>, aangeboden sinds @houseData[selectedHouse].placed</span>}<br />
+                        @if (@houseData[selectedHouse].available != "")
+                        {<span>Extra info: @houseData[selectedHouse].extra</span>}
+                    </p>
+                    @if (@houseData[selectedHouse].url != "")
+                    {<a href=@houseData[selectedHouse].url>Link naar @houseData[selectedHouse].siteName</a>}<br />
+
+                    @if (routesCalculated)
+                    {
+                        <br /><span>Walking: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Walking"))">View</button><br />@*<span id="walkingRoute">@walkingRouteText</span><br />@
+                        @foreach (var line in walkingRouteText.Split('\n'))
+                        {@line<br />}
+                        <br /><span>Driving: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Driving"))">View</button><br />@*<span id="drivingRoute">@drivingRouteText</span><br />@
+                        @foreach (var line in drivingRouteText.Split('\n'))
+                        {@line<br />}
+                        <br /><span>Public transport: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Transit"))">View</button><br />@*<span id="transitRoute">@transitRouteText</span>@
+                        @foreach (var line in transitRouteText.Split('\n'))
+                        {@line<br />}
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="GetRoutes">Calculate travel routes</button>
+                    }
+                </div>
+            }
+        }
+        <div id="myMap" @onclick="MouseClicked" style="flex-grow:1">Hi</div>
+        @if (viewSingleHouse)
+        {
+            <div id="printoutPanel" style="overflow:auto; height:500px; width:485px"></div>
+        }
+    </div>
+
+
+    @statusText*@
+    @*<button class="btn btn-primary" @onclick="TestPin">Add testpin</button>*@
+    @*<button class="btn btn-primary" @onclick="SwitchLayer">Switch Layer</button>
+        <button class="btn btn-primary" @onclick="SetChosenHouse">Set chosen house</button>*@

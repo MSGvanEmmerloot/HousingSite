@@ -1,0 +1,15 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+#myMap {
+    width: 800px; /*800*/
+    height: 500px
+}
+
+.customInfoBox {
+    background-color: White;
+    border-style: solid;
+    border-width: medium;
+    border-color: DarkOrange;
+    min-height: 100px;
+    width: 240px;
+}

@@ -1,0 +1,15 @@
+﻿@page "/housetable"
+
+@using HousingSite.Data
+@inherits HouseTableRazorClass
+
+<h1>Load houses</h1>
+
+@if (!@init)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Loaded houses!</p>
+}

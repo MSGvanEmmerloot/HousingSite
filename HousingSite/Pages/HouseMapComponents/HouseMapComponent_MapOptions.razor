@@ -1,0 +1,205 @@
+﻿@*@page "/housemap/searchoptions"*@
+<!-- HouseMapComponent_MapOptions -->
+@inherits HousingSite.Pages.HouseMapClass;
+
+<div class="card card-body">
+    <div class="row justify-content-between">
+        <div class="col-2">
+            <h3>Map options</h3>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" type="button" @onclick="@(() => { showSearchOptions = true; UpdateSearchOptions(); })">View search options</button>
+        </div>
+    </div>
+    <div class="row align-items-start">
+        <div class="col-3">
+            Houses to show:<br />
+            <select id="select-box" @bind="selectedHouseFilter">
+                @for (int m = 0; m < houseFilterStrings.Length; m++)
+                {
+                    var c = m;
+                    <option value=@((HouseFilters)c)>@houseFilterStrings[c]</option>
+                }
+            </select>
+        </div>
+        <div class="col-3">
+            Travel mode:<br />
+            <select id="select-box" @bind="selectedTravelMode">
+                @for (int m = 0; m < travelModeStrings.Length; m++)
+                {
+                    var c = m;
+                    <option value=@((TravelModes)c)>@travelModeStrings[c]</option>
+                }
+            </select>
+        </div>
+        @if (selectedTravelMode != TravelModes.none)
+        {
+            <div class="col-3">
+                Calculation mode:<br />
+                <select id="select-box" @bind="selectedCalculationMode">
+                    @for (int m = 0; m < calculationModeStrings.Length; m++)
+                    {
+                        var c = m;
+                        <option value=@((CalculationModes)c)>@calculationModeStrings[c]</option>
+                    }
+                </select>
+            </div>
+            @if (selectedCalculationMode != CalculationModes.none)
+            {
+                <div class="col-3">
+                    @if (selectedCalculationMode == CalculationModes.distance)
+                    {
+                        <span>Travel distance (km) </span><br />
+                        <input type="number" step="0.1" @bind="travelDistance" />
+                    }
+                    else if (selectedCalculationMode == CalculationModes.time)
+                    {
+                        <span>Travel time (minutes) </span><br />
+                        <input type="number" step="1" @bind="travelTime" />
+                    }
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-primary" @onclick="DrawIsochroneAtAddress">Draw distance map</button>
+                </div>
+            }
+
+        }
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-2">
+            Base location<br />
+            <input type="text" @bind="place" /><br />
+        </div>
+        <div class="col-2">
+            Circle radius (km)<br />
+            <input type="number" step="0.1" @bind="radius" />
+        </div>
+        <div class="col-4">
+            <button class="btn btn-primary" @onclick="PlacePinAtAddress">Place pinpoint at base location</button>
+            <button class="btn btn-primary" @onclick="DrawCircleAtAddress">Draw circle around base location</button>
+        </div>
+        <div class="col-2">
+            <br />
+            <button class="btn btn-primary" @onclick="@(() => ClearMap())">Clear map</button><br />
+        </div>
+    </div>
+    <input type="checkbox" @bind="AddUserLocationOnClick" /><span>Draw circle at clicked location and get address</span> @*@onclick="ToggleAddUserLocationOnClick"*@
+</div>
+
+@code {
+    #region Code
+    [Parameter] public bool showSearchOptions { get; set; }
+    [Parameter]
+    public EventCallback<bool>
+    showSearchOptionsChanged
+    { get; set; }
+
+    [Parameter] public HouseMapClass.HouseFilters selectedHouseFilter { get; set; }
+    [Parameter]
+    public EventCallback<HouseMapClass.HouseFilters>
+    selectedHouseFilterChanged
+    { get; set; }
+
+    [Parameter] public HouseMapClass.TravelModes selectedTravelMode { get; set; }
+    [Parameter]
+    public EventCallback<HouseMapClass.TravelModes>
+    selectedTravelModeChanged
+    { get; set; }
+
+    [Parameter] public HouseMapClass.CalculationModes selectedCalculationMode { get; set; }
+    [Parameter]
+    public EventCallback<HouseMapClass.CalculationModes>
+    selectedCalculationModeChanged
+    { get; set; }
+
+    [Parameter] public float travelDistance { get; set; }
+    [Parameter]
+    public EventCallback<float>
+    travelDistanceChanged
+    { get; set; }
+
+    [Parameter] public float travelTime { get; set; }
+    [Parameter]
+    public EventCallback<float>
+    travelTimeChanged
+    { get; set; }
+
+    [Parameter] public string place { get; set; }
+    [Parameter]
+    public EventCallback<string>
+    placeChanged
+    { get; set; }
+
+    [Parameter] public double radius { get; set; }
+    [Parameter]
+    public EventCallback<double>
+    radiusChanged
+    { get; set; }
+
+    [Parameter] public bool AddUserLocationOnClick { get; set; }
+    [Parameter]
+    public EventCallback<bool>
+    AddUserLocationOnClickChanged
+    { get; set; }
+
+    public async Task UpdateParentVariables()
+    {
+        await selectedHouseFilterChanged.InvokeAsync(@selectedHouseFilter);
+        await selectedTravelModeChanged.InvokeAsync(@selectedTravelMode);
+        await selectedCalculationModeChanged.InvokeAsync(@selectedCalculationMode);
+        await travelDistanceChanged.InvokeAsync(@travelDistance);
+        await travelTimeChanged.InvokeAsync(@travelTime);
+        await placeChanged.InvokeAsync(@place);
+        await radiusChanged.InvokeAsync(@radius);
+        await AddUserLocationOnClickChanged.InvokeAsync(@AddUserLocationOnClick);        
+    }
+
+    private async void UpdateSearchOptions()
+    {
+        //await showSearchOptionsChanged.InvokeAsync(@showSearchOptions);
+        await UpdateParentVariables();
+        await showSearchOptionsChanged.InvokeAsync(@showSearchOptions);
+    }
+
+    [Parameter] public EventCallback DrawIsochroneAtAddressCallback { get; set; }
+    private async Task DrawIsochroneAtAddress()
+    {
+        await UpdateParentVariables();
+
+        await DrawIsochroneAtAddressCallback.InvokeAsync(null);
+    }
+
+    [Parameter] public EventCallback PlacePinAtAddressCallback { get; set; }
+    private async Task PlacePinAtAddress()
+    {
+        await UpdateParentVariables();
+
+        await PlacePinAtAddressCallback.InvokeAsync(null);
+    }
+
+    [Parameter] public EventCallback DrawCircleAtAddressCallback { get; set; }
+    private async Task DrawCircleAtAddress()
+    {
+        await UpdateParentVariables();
+
+        await DrawCircleAtAddressCallback.InvokeAsync(null);
+    }
+
+    [Parameter] public EventCallback ClearMapCallback { get; set; }
+    private async Task ClearMap()
+    {
+        await UpdateParentVariables();
+
+        await ClearMapCallback.InvokeAsync(null);
+    }
+
+    [Parameter] public EventCallback ToggleAddUserLocationOnClickCallback { get; set; }
+    private async Task ToggleAddUserLocationOnClick()
+    {
+        await UpdateParentVariables();
+
+        await ToggleAddUserLocationOnClickCallback.InvokeAsync(null);
+    }
+    #endregion
+}
