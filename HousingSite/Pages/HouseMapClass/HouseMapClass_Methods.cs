@@ -388,6 +388,15 @@ namespace HousingSite.Pages
             }
         }
 
+        public void SetSessionKey(string key)
+        {
+            sessionKey = key;
+            if (MappingService.sessionKey != sessionKey)
+            {
+                MappingService.sessionKey = sessionKey;
+                Console.WriteLine("\nSet sessionKey of MappingService: " + sessionKey);
+            }
+        }
         private async void SyncUserPin()
         {
             if (userPinCoords == null)

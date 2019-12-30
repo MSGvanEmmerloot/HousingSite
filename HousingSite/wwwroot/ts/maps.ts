@@ -61,9 +61,6 @@ interface IPushpinData {
 //    let pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(0, 0), { color: "Green" });
 //    InsertHousePin(index, pin);
 //}
-function SetDotNetHelper(ref): void {
-    dotNetHelper = ref;
-}
 function FromNet(option): void {
     console.log("Received " + option);
     if (dotNetHelper != null) {
@@ -93,6 +90,10 @@ class BingMap {
         if (!sessionKey) {
             this.map.getCredentials((credentials) => {
                 sessionKey = credentials;
+                if (dotNetHelper != null) {
+                    dotNetHelper.invokeMethodAsync("SetSessionKey", sessionKey);
+                }
+                else (console.log("No dotnet helper!"));
             });            
         }
     }    
@@ -145,7 +146,15 @@ function loadMapScenario(key: string): void {
 }
 //#endregion
 
-function GetSessionKey(): string { return sessionKey; }
+function SetDotNetHelper(ref): void {
+    dotNetHelper = ref;
+}
+function GetSessionKey(): void {
+    if (dotNetHelper != null) {
+        dotNetHelper.invokeMethodAsync("SetSessionKey", sessionKey);
+    }
+}
+//function GetSessionKey(): string { return sessionKey; }
 function GetUserpinCoords(): string[] { return userpinCoords; }
 function GetMapClicked(): string {
     let curMapClicked = mapClicked;

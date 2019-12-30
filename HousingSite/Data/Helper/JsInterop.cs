@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using HousingSite.Pages;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,22 @@ namespace HousingSite.Data.Helper//HousingSite.Pages
     public class JsInterop
     {
         protected string resultString;
+        public string sessionKey { get; private set; }
         protected IJSRuntime JSRuntime { get; set; }
         protected DotNetObjectReference<JsInterop> dotNetObjectRef;
+        protected HouseMapClass houseMapClass;
 
         public JsInterop(IJSRuntime IJSRuntime)
         {
             JSRuntime = IJSRuntime;
+            dotNetObjectRef = DotNetObjectReference.Create(this);
+            JSRuntime.InvokeAsync<Task>("SetDotNetHelper", dotNetObjectRef);
+        }
+
+        public JsInterop(IJSRuntime IJSRuntime, HouseMapClass mapClass)
+        {
+            JSRuntime = IJSRuntime;
+            houseMapClass = mapClass;
             dotNetObjectRef = DotNetObjectReference.Create(this);
             JSRuntime.InvokeAsync<Task>("SetDotNetHelper", dotNetObjectRef);
         }
@@ -24,6 +35,17 @@ namespace HousingSite.Data.Helper//HousingSite.Pages
         {
             Console.WriteLine("Received " + s);
             resultString = s;
+        }
+
+        [JSInvokable]
+        public void SetSessionKey(string s)
+        {
+            Console.WriteLine("Received " + s);
+            sessionKey = s;
+            if(houseMapClass != null)
+            {
+                houseMapClass.SetSessionKey(sessionKey);
+            }            
         }
 
         public async Task<string> CallFunction1()
@@ -36,6 +58,12 @@ namespace HousingSite.Data.Helper//HousingSite.Pages
         {
             await JSRuntime.InvokeAsync<Task>("FromNet2", dotNetObjectRef, "Hello again");
             return resultString;
+        }
+
+        public async Task<string> GetSessionKey()
+        {
+            await JSRuntime.InvokeAsync<string>("GetSessionKey");
+            return sessionKey;
         }
     }
 }

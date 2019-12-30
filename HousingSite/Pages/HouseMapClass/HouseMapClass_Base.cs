@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HousingSite.Pages.HouseMapComponents;
+using HousingSite.Data.Helper;
 
 namespace HousingSite.Pages
 {
@@ -20,6 +21,8 @@ namespace HousingSite.Pages
         protected HouseTableService HouseService { get; set; }
         [Inject]
         protected MapService MappingService { get; set; }
+
+        protected JsInterop jsInterop;
 
         #region Variables
         private string sessionKey = "";
@@ -103,56 +106,16 @@ namespace HousingSite.Pages
         public SearchParams lastSearchParams;
         #endregion
 
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
+                jsInterop = new JsInterop(JSRuntime, this);
                 await JSRuntime.InvokeAsync<string>("loadMapScenario", Credentials.BingMapsKey);
-                SyncSessionKey();
-                //Console.WriteLine("Hi");
             }
-
-            //while (true)
-            //{
-            //Console.WriteLine(showSearchOptions);
-            //System.Threading.Thread.Sleep(1000);
-            //}
         }
-
-        //public HouseMapComponent_SearchOptions SearchOptions;
-        //public HouseMapComponent_MapOptions MapOptions;
-
-        //protected async Task GetChildComponentVariables()
-        //{
-        //    if (showSearchOptions)
-        //    {
-        //        await SearchOptions.UpdateParentVariables();
-        //    }
-        //    else await MapOptions.UpdateParentVariables();
-        //    await Test();
-        //}
-
-        //protected async Task Test()
-        //{
-        //    Console.WriteLine("Testy");
-
-        //    Console.WriteLine("showSearchOptions = " + showSearchOptions);
-        //    Console.WriteLine("city = " + city);
-        //    Console.WriteLine("priceMin = " + priceMin);
-        //    Console.WriteLine("priceMax = "+ priceMax);
-        //    Console.WriteLine("area = " + area);
-        //    Console.WriteLine("bedrooms = " + bedrooms);
-
-        //    Console.WriteLine("selectedHouseFilter = " + selectedHouseFilter);
-        //    Console.WriteLine("selectedTravelMode = " + selectedTravelMode);
-        //    Console.WriteLine("selectedCalculationMode = " + selectedCalculationMode);
-        //    Console.WriteLine("travelDistance = " + travelDistance);
-        //    Console.WriteLine("travelTime = " + travelTime);
-        //    Console.WriteLine("place = " + place);
-        //    Console.WriteLine("radius = " + radius);
-        //    Console.WriteLine("AddUserLocationOnClick = " + AddUserLocationOnClick);
-        //}
-
+        
         protected async Task MouseClicked(MouseEventArgs e)
         {
             clickX = e.ClientX;
@@ -171,7 +134,6 @@ namespace HousingSite.Pages
         {
             if (baseAddress.Key == null || baseAddress.Value == null || baseAddress.Key != place)
             {
-                //baseAddress = new KeyValuePair<string, double[]>(place, MappingService.GetPDOKinfoFromAddress(place));
                 double[] baseCoordinates = await MappingService.GetSingleLocationTask(place);
                 baseAddress = new KeyValuePair<string, double[]>(place, baseCoordinates);
                 transactions++;

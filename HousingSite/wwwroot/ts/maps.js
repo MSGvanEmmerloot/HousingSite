@@ -43,9 +43,6 @@ var housePinData;
 //    let pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(0, 0), { color: "Green" });
 //    InsertHousePin(index, pin);
 //}
-function SetDotNetHelper(ref) {
-    dotNetHelper = ref;
-}
 function FromNet(option) {
     console.log("Received " + option);
     if (dotNetHelper != null) {
@@ -72,6 +69,11 @@ var BingMap = /** @class */ (function () {
         if (!sessionKey) {
             this.map.getCredentials(function (credentials) {
                 sessionKey = credentials;
+                if (dotNetHelper != null) {
+                    dotNetHelper.invokeMethodAsync("SetSessionKey", sessionKey);
+                }
+                else
+                    (console.log("No dotnet helper!"));
             });
         }
     }
@@ -114,7 +116,15 @@ function loadMapScenario(key) {
     addLocOnClick = false;
 }
 //#endregion
-function GetSessionKey() { return sessionKey; }
+function SetDotNetHelper(ref) {
+    dotNetHelper = ref;
+}
+function GetSessionKey() {
+    if (dotNetHelper != null) {
+        dotNetHelper.invokeMethodAsync("SetSessionKey", sessionKey);
+    }
+}
+//function GetSessionKey(): string { return sessionKey; }
 function GetUserpinCoords() { return userpinCoords; }
 function GetMapClicked() {
     var curMapClicked = mapClicked;
