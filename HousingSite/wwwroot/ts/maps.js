@@ -62,9 +62,9 @@ function FromNet2(funcRef, option) {
 //#endregion
 //#region Base class and LoadMap
 var BingMap = /** @class */ (function () {
-    function BingMap() {
+    function BingMap(key) {
         this.map = new Microsoft.Maps.Map('#myMap', {
-            credentials: "{BINGMAPS_KEY}",
+            credentials: key,
             center: new Microsoft.Maps.Location(52.215951, 6.004184),
             mapTypeId: Microsoft.Maps.MapTypeId.road,
             zoom: 9,
@@ -77,8 +77,8 @@ var BingMap = /** @class */ (function () {
     }
     return BingMap;
 }());
-function loadMapScenario() {
-    bingMap = new BingMap();
+function loadMapScenario(key) {
+    bingMap = new BingMap(key);
     isochroneLayer = new Microsoft.Maps.Layer();
     bingMap.map.layers.insert(isochroneLayer);
     isochronePolygon = [];

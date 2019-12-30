@@ -107,7 +107,7 @@ namespace HousingSite.Pages
         {
             if (firstRender)
             {
-                await JSRuntime.InvokeAsync<string>("loadMapScenario");
+                await JSRuntime.InvokeAsync<string>("loadMapScenario", Credentials.BingMapsKey);
                 SyncSessionKey();
                 //Console.WriteLine("Hi");
             }
