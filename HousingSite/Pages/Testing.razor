@@ -6,6 +6,7 @@
 <table>
     <thead>
         <tr>
+            @*<th></th>*@
             <th>#</th>
             <th>Enable</th>
             <th>Color</th>
@@ -20,16 +21,34 @@
         @for (int r = 0; r < ruleParams2.Count; r++)
         {
             var cur = r;
-        <tr>
+        <tr style="background-color:@ruleParams2[cur].color">
             @*<td>@ruleParams2[cur].sequenceNumber</td>*@
-            <td><input type="number" value=@ruleParams2[cur].sequenceNumber @onchange="(e => ShiftRuleParamList(ruleParams2[cur], Int32.Parse(e.Value.ToString())))" style="width:50px" /></td>
-            <td>
-                @if (@ruleParams2[cur].apply == true)
-                {
-                    <span>Yes</span>
-                }
+            @*<td><input type="number" value=@ruleParams2[cur].sequenceNumber @onchange="(e => ShiftRuleParamList(ruleParams2[cur], Int32.Parse(e.Value.ToString())))" style="width:50px" /></td>*@
+            @*<td><input type="number" @bind-value=@ruleParams2[cur].sequenceNumber
+        @bind-value:event="@((ChangeEventArgs e) => ruleParams2[cur].sequenceNumber = ShiftRuleParamList2(ruleParams2[cur], Int32.Parse(e.Value.ToString())))"
+        style="width:50px" /></td>*@
+            <td style="background-color:white; color:black;">
+                <button class="btn btn-primary" @onclick="@(() => ShiftRuleParamList(ruleParams2[cur], ruleParams2[cur].sequenceNumber + 1))" style="background-color:lightgrey; color:black; width:40px; height:40px">+</button>
+                @ruleParams2[cur].sequenceNumber
+                <button class="btn btn-primary" @onclick="@(() => ShiftRuleParamList(ruleParams2[cur], ruleParams2[cur].sequenceNumber - 1))" style="background-color:lightgrey; color:black; width:40px; height:40px">-</button>
             </td>
-            <td>
+            @*<td>
+               @ruleParams2[cur].sequenceNumber
+            </td>*@
+            @*<td>
+                <input type="number" value=@ruleParams2[cur].sequenceNumber
+                       @oninput="@((ChangeEventArgs e) => { ruleParams2[cur].sequenceNumber = ShiftRuleParamList2(ruleParams2[cur], Int32.Parse(e.Value.ToString())); Console.WriteLine(cur + ": " + ruleParams2[cur].sequenceNumber); })"
+                       @onfocusout="@(() => { this.StateHasChanged(); Console.WriteLine("State changed"); })"
+                       style="width:50px" />
+            </td>*@
+        <td>
+            <input type="checkbox" @bind="ruleParams2[cur].apply" />
+            @*@if (@ruleParams2[cur].apply == true)
+            {
+                <span>Yes</span>
+            }*@
+        </td>
+            <td style="background-color:@ruleParams2[cur].color">
                 <select id="select-box" @bind="@ruleParams2[cur].color">
                     @for (int m = 0; m < colorStrings.Length; m++)
                     {

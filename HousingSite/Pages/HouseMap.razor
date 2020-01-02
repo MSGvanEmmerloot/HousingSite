@@ -21,232 +21,330 @@
             </div>
             <!-- #endregion Progress bars -->
         }
-        else if (@showSearchOptions == true)
-        {
-            <!-- #region Search Options -->
-            <div class="card card-body">
-                <div class="row justify-content-between">
-                    <div class="col-2">
-                        <h3>Search options</h3>
-                    </div>
-                    <div class="col">
-                        <button class="btn btn-primary" type="button" @onclick="@(() => showSearchOptions = false)">View map options</button>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>City</th>
-                            <th>Minimum price</th>
-                            <th>Maximum price</th>
-                            <th>Minimum area</th>
-                            <th>Minimum amount of bedrooms</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><input type="text" @bind="city" /></td>
-                            <td><input type="number" @bind="priceMin" /></td>
-                            <td><input type="number" @bind="priceMax" /></td>
-                            <td><input type="number" @bind="area" /></td>
-                            <td><input type="number" @bind="bedrooms" /></td>
-                            <td><button class="btn btn-primary" @onclick="@(() => FindHouses())">Find Houses</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <br />
-                <div class="row">
-                    <div class="col-2">
-                        Base location<br />
-                        <input type="text" @bind="place" /><br />
-                    </div>
-                    <div class="col-6">
-                        Sites to use <br />
-                        @if (!viewSingleHouse)
-                        {
-                            @for (int s = 0; s < HouseService.housingSites.Count; s++)
-                            {
-                                @if (s < HouseService.sitesChecked.Count)
-                                {
-                                    var c = s;
-                                    @HouseService.housingSites.Keys.ElementAt(c)
-                                    <input type="checkbox" @bind="HouseService.sitesChecked[c]" />
-                                }
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-            <!-- #endregion Search Options -->
-        }
         else
         {
-            <!-- #region Map Options -->
-            <div class="card card-body">
-                <div class="row justify-content-between">
-                    <div class="col-2">
-                        <h3>Map options</h3>
+            switch (selectedWindowOption)
+            {
+                case WindowOptions.SearchOptions:
+                    <!-- #region Search Options -->
+                    <div class="card card-body">
+                        <div class="row justify-content-between">
+                            <div class="col-2">
+                                <h3>Search options</h3>
+                            </div>
+                            <div class="col">
+                                @*<button class="btn btn-primary" type="button" @onclick="@(() => showSearchOptions = false)">View map options</button>*@
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.MapOptions)">View map options</button>
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.RuleOptions)">View rule options</button>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>City</th>
+                                    <th>Minimum price</th>
+                                    <th>Maximum price</th>
+                                    <th>Minimum area</th>
+                                    <th>Minimum amount of bedrooms</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" @bind="city" /></td>
+                                    <td><input type="number" @bind="priceMin" /></td>
+                                    <td><input type="number" @bind="priceMax" /></td>
+                                    <td><input type="number" @bind="area" /></td>
+                                    <td><input type="number" @bind="bedrooms" /></td>
+                                    <td><button class="btn btn-primary" @onclick="@(() => FindHouses())">Find Houses</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br />
+                        <div class="row">
+                            <div class="col-2">
+                                Base location<br />
+                                <input type="text" @bind="place" /><br />
+                            </div>
+                            <div class="col-6">
+                                Sites to use <br />
+                                @if (!viewSingleHouse)
+                                {
+                                    @for (int s = 0; s < HouseService.housingSites.Count; s++)
+                                    {
+                                        @if (s < HouseService.sitesChecked.Count)
+                                        {
+                                            var c = s;
+                                            @HouseService.housingSites.Keys.ElementAt(c)
+                                            <input type="checkbox" @bind="HouseService.sitesChecked[c]" />
+                                        }
+                                    }
+                                }
+                            </div>
+                        </div>
                     </div>
-                    <div class="col">
-                        <button class="btn btn-primary" type="button" @onclick="@(() => showSearchOptions = true)">View search options</button>
-                    </div>
-                </div>
-                <div class="row align-items-start">
-                    <div class="col-3">
-                        Houses to show:<br />
-                        <select id="select-box" @bind="selectedHouseFilter">
-                            @for (int m = 0; m < houseFilterStrings.Length; m++)
+                    <!-- #endregion Search Options -->
+                    break;
+                case WindowOptions.MapOptions:
+                    <!-- #region Map Options -->
+                    <div class="card card-body">
+                        <div class="row justify-content-between">
+                            <div class="col-2">
+                                <h3>Map options</h3>
+                            </div>
+                            <div class="col">
+                                @*<button class="btn btn-primary" type="button" @onclick="@(() => showSearchOptions = true)">View search options</button>*@
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.SearchOptions)">View search options</button>
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.RuleOptions)">View rule options</button>
+                            </div>
+                        </div>
+                        <div class="row align-items-start">
+                            <div class="col-3">
+                                Houses to show:<br />
+                                <select id="select-box" @bind="selectedHouseFilter">
+                                    @for (int m = 0; m < houseFilterStrings.Length; m++)
+                                    {
+                                        var c = m;
+                                        <option value=@((HouseFilters)c)>@houseFilterStrings[c]</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                Travel mode:<br />
+                                <select id="select-box" @bind="selectedTravelMode">
+                                    @for (int m = 0; m < travelModeStrings.Length; m++)
+                                    {
+                                        var c = m;
+                                        <option value=@((TravelModes)c)>@travelModeStrings[c]</option>
+                                    }
+                                </select>
+                            </div>
+                            @if (selectedTravelMode != TravelModes.none)
                             {
-                                var c = m;
-                                <option value=@((HouseFilters)c)>@houseFilterStrings[c]</option>
+                                <div class="col-3">
+                                    Calculation mode:<br />
+                                    <select id="select-box" @bind="selectedCalculationMode">
+                                        @for (int m = 0; m < calculationModeStrings.Length; m++)
+                                        {
+                                            var c = m;
+                                            <option value=@((CalculationModes)c)>@calculationModeStrings[c]</option>
+                                        }
+                                    </select>
+                                </div>
+                                @if (selectedCalculationMode != CalculationModes.none)
+                                {
+                                    <div class="col-3">
+                                        @if (selectedCalculationMode == CalculationModes.distance)
+                                        {
+                                            <span>Travel distance (km) </span><br />
+                                            <input type="number" step="0.1" @bind="travelDistance" />
+                                        }
+                                        else if (selectedCalculationMode == CalculationModes.time)
+                                        {
+                                            <span>Travel time (minutes) </span><br />
+                                            <input type="number" step="1" @bind="travelTime" />
+                                        }
+                                    </div>
+                                    <div class="col-3">
+                                        <button class="btn btn-primary" @onclick="DrawIsochroneAtAddress">Draw distance map</button>
+                                    </div>
+                                }
+
                             }
-                        </select>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-2">
+                                Base location<br />
+                                <input type="text" @bind="place" /><br />
+                            </div>
+                            <div class="col-2">
+                                Circle radius (km)<br />
+                                <input type="number" step="0.1" @bind="radius" />
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-primary" @onclick="PlacePinAtAddress">Place pinpoint at base location</button>
+                                <button class="btn btn-primary" @onclick="DrawCircleAtAddress">Draw circle around base location</button>
+                            </div>
+                            <div class="col-2">
+                                <br />
+                                <button class="btn btn-primary" @onclick="@(() => ClearMap())">Clear map</button><br />
+                            </div>
+                        </div>
+                        <input type="checkbox" @bind="AddUserLocationOnClick" @onclick="ToggleAddUserLocationOnClick" /><span>Draw circle at clicked location and get address</span>
                     </div>
-                    <div class="col-3">
-                        Travel mode:<br />
-                        <select id="select-box" @bind="selectedTravelMode">
-                            @for (int m = 0; m < travelModeStrings.Length; m++)
-                            {
-                                var c = m;
-                                <option value=@((TravelModes)c)>@travelModeStrings[c]</option>
-                            }
-                        </select>
-                    </div>
-                    @if (selectedTravelMode != TravelModes.none)
-                    {
-                        <div class="col-3">
-                            Calculation mode:<br />
-                            <select id="select-box" @bind="selectedCalculationMode">
-                                @for (int m = 0; m < calculationModeStrings.Length; m++)
+                    <!-- #endregion Map Options -->
+                    break;
+                case WindowOptions.RuleOptions:
+                    <!-- #region Rule Options -->
+                    <div class="card card-body">
+                        <div class="row justify-content-between">
+                            <div class="col-2">
+                                <h3>Rule options</h3>
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.SearchOptions)">View search options</button>
+                                <button class="btn btn-primary" type="button" @onclick="@(() => selectedWindowOption = WindowOptions.MapOptions)">View map options</button>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Enable</th>
+                                    <th>Color</th>
+                                    <th>Parameter</th>
+                                    <th>Condition</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int r = 0; r < ruleParams.Count; r++)
+                                {
+                                    var cur = r;
+                                    <tr style="background-color:@ruleParams[cur].color">
+                                        <td style="background-color:white; color:black;">
+                                            <button class="btn btn-primary" @onclick="@(() => ShiftRuleParamList(ruleParams[cur], ruleParams[cur].sequenceNumber + 1))" style="background-color:lightgrey; color:black; width:40px; height:40px">+</button>
+                                            @ruleParams[cur].sequenceNumber
+                                            <button class="btn btn-primary" @onclick="@(() => ShiftRuleParamList(ruleParams[cur], ruleParams[cur].sequenceNumber - 1))" style="background-color:lightgrey; color:black; width:40px; height:40px">-</button>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" @bind="ruleParams[cur].apply" />
+                                        </td>
+                                        <td style="background-color:@ruleParams[cur].color">
+                                            <select id="select-box" @bind="@ruleParams[cur].color">
+                                                @for (int m = 0; m < colorStrings.Length; m++)
+                                                {
+                                                    var c = m;
+                                                    <option value=@((ColorOptions)c)>@colorStrings[c]</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select id="select-box" @bind="@ruleParams[cur].parameter">
+                                                @for (int m = 0; m < ruleParamStrings.Length; m++)
+                                                {
+                                                    var c = m;
+                                                    <option value=@((RuleParamOptions)c)>@ruleParamStrings[c]</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select id="select-box" @bind="@ruleParams[cur].condition">
+                                                @for (int m = 0; m < conditionStrings.Length; m++)
+                                                {
+                                                    var c = m;
+                                                    <option value=@((ConditionOptions)c)>@conditionStrings[c]</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" @bind="ruleParams[cur].borderVal1" style="width:80px" />
+                                            @if (@ruleParams[cur].condition == ConditionOptions.between)
+                                            {
+                                                <span>and</span> <input type="number" @bind="ruleParams[cur].borderVal2" style="width:80px" />
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <input type="number" @bind="testPrice" style="width:50px" />
+                            <input type="number" @bind="testArea" style="width:50px" />
+                            <select id="select-box" @bind="@defaultColor">
+                                @for (int m = 0; m < colorStrings.Length; m++)
                                 {
                                     var c = m;
-                                    <option value=@((CalculationModes)c)>@calculationModeStrings[c]</option>
+                                    <option value=@((ColorOptions)c)>@colorStrings[c]</option>
                                 }
                             </select>
+                            <button class="btn btn-primary" @onclick="@(() => CheckResultValue())">Test</button>
+                            <button class="btn btn-primary" @onclick="@(() => SetDefaultRules())">Reset rules to default</button>
                         </div>
-                        @if (selectedCalculationMode != CalculationModes.none)
-                        {
-                            <div class="col-3">
-                                @if (selectedCalculationMode == CalculationModes.distance)
-                                {
-                                    <span>Travel distance (km) </span><br />
-                                    <input type="number" step="0.1" @bind="travelDistance" />
-                                }
-                                else if (selectedCalculationMode == CalculationModes.time)
-                                {
-                                    <span>Travel time (minutes) </span><br />
-                                    <input type="number" step="1" @bind="travelTime" />
-                                }
-                            </div>
-                            <div class="col-3">
-                                <button class="btn btn-primary" @onclick="DrawIsochroneAtAddress">Draw distance map</button>
-                            </div>
-                        }
-
-                    }
-                </div>
-                <br />
-                <div class="row">
-                    <div class="col-2">
-                        Base location<br />
-                        <input type="text" @bind="place" /><br />
                     </div>
-                    <div class="col-2">
-                        Circle radius (km)<br />
-                        <input type="number" step="0.1" @bind="radius" />
-                    </div>
-                    <div class="col-4">
-                        <button class="btn btn-primary" @onclick="PlacePinAtAddress">Place pinpoint at base location</button>
-                        <button class="btn btn-primary" @onclick="DrawCircleAtAddress">Draw circle around base location</button>
-                    </div>
-                    <div class="col-2">
-                        <br />
-                        <button class="btn btn-primary" @onclick="@(() => ClearMap())">Clear map</button><br />
-                    </div>
-                </div>
-                <input type="checkbox" @bind="AddUserLocationOnClick" @onclick="ToggleAddUserLocationOnClick" /><span>Draw circle at clicked location and get address</span>
-            </div>
-            <!-- #endregion Map Options -->
+                    <!-- #endregion Rule Options -->
+                    break;
+            }
         }
     </div>
-<br />
+        <br />
 
-<div style="width:100%; display:flex; margin:5px">
-    @if (!viewSingleHouse)
-    {
-        <!-- #region House Details -->
-        <div id="houseDataTable" style="width:30%; overflow:auto; height:500px; border:1px solid">
-            @for (int h = 0; h < houseData.Count; h++)
+        <div style="width:100%; display:flex; margin:5px">
+            @if (!viewSingleHouse)
             {
-                var curH = h;
-                @if (housesInRadius[curH] || selectedHouseFilter == HouseFilters.all)
+                <!-- #region House Details -->
+                <div id="houseDataTable" style="width:30%; overflow:auto; height:500px; border:1px solid">
+                    @for (int h = 0; h < houseData.Count; h++)
+                    {
+                        var curH = h;
+                        @if (housesInRadius[curH] || selectedHouseFilter == HouseFilters.all)
+                        {
+                            <div id="house@h" style="border:solid; margin:2px">
+                                <h6>House @h: @houseData[h].title</h6>
+                                @houseData[h].street, @houseData[h].postalCode<br />
+                                <b>@houseData[h].price voor @houseData[h].area</b>
+                                <button class="btn btn-primary" @onclick="@(() => SetChosenHouse(curH))">See more..</button>
+                            </div>
+                        }
+                    }
+                </div>
+                <!-- #endregion House Details -->
+            }
+            else
+            {
+                <!-- #region List of Houses -->
+                @if (selectedHouse != -1 && selectedHouse < houseData.Count)
                 {
-                    <div id="house@h" style="border:solid; margin:2px">
-                        <h6>House @h: @houseData[h].title</h6>
-                        @houseData[h].street, @houseData[h].postalCode<br />
-                        <b>@houseData[h].price voor @houseData[h].area</b>
-                        <button class="btn btn-primary" @onclick="@(() => SetChosenHouse(curH))">See more..</button>
+                    <div style="width:30%; overflow:auto; height:500px; border:1px solid">
+                        <button class="btn btn-primary" @onclick="SwitchLayer">Return to overview</button><br />
+                        <h6>House @selectedHouse: @houseData[selectedHouse].title</h6>
+                        <p>
+                            @houseData[selectedHouse].street, @houseData[selectedHouse].postalCode<br />
+                            @if (@houseData[selectedHouse].neighbourhood != "")
+                            {@houseData[selectedHouse].neighbourhood<br>}
+                            <b>@houseData[selectedHouse].price voor @houseData[selectedHouse].area</b>
+                            @if (@houseData[selectedHouse].available != "")
+                            {<span> met @houseData[selectedHouse].bedrooms slaapkamer(s)</span>}<br />
+                            @if (@houseData[selectedHouse].available != "")
+                            {<span>Beschikbaar vanaf @houseData[selectedHouse].available</span>}
+                            @if (@houseData[selectedHouse].placed != "")
+                            {<span>, aangeboden sinds @houseData[selectedHouse].placed</span>}<br />
+                            @if (@houseData[selectedHouse].available != "")
+                            {<span>Extra info: @houseData[selectedHouse].extra</span>}
+                        </p>
+                        @if (@houseData[selectedHouse].url != "")
+                        {<a href=@houseData[selectedHouse].url>Link naar @houseData[selectedHouse].siteName</a>}<br />
+
+                        @if (routesCalculated)
+                        {
+                            <br /><span>Walking: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Walking"))">View</button><br />@*<span id="walkingRoute">@walkingRouteText</span><br />*@
+                            @foreach (var line in walkingRouteText.Split('\n'))
+                            {@line<br />}
+                            <br /><span>Driving: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Driving"))">View</button><br />@*<span id="drivingRoute">@drivingRouteText</span><br />*@
+                            @foreach (var line in drivingRouteText.Split('\n'))
+                            {@line<br />}
+                            <br /><span>Public transport: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Transit"))">View</button><br />@*<span id="transitRoute">@transitRouteText</span>*@
+                            @foreach (var line in transitRouteText.Split('\n'))
+                            {@line<br />}
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary" @onclick="GetRoutes">Calculate travel routes</button>
+                        }
                     </div>
                 }
+                <!-- #endregion List of Houses -->
+            }
+            <div id="myMap" @onclick="MouseClicked" style="flex-grow:1">Hi</div>
+            @if (viewSingleHouse)
+            {
+                <div id="printoutPanel" style="overflow:auto; height:500px; width:485px"></div>
             }
         </div>
-        <!-- #endregion House Details -->
-    }
-    else
-    {
-        <!-- #region List of Houses -->
-        @if (selectedHouse != -1 && selectedHouse < houseData.Count)
-        {
-            <div style="width:30%; overflow:auto; height:500px; border:1px solid">
-                <button class="btn btn-primary" @onclick="SwitchLayer">Return to overview</button><br />
-                <h6>House @selectedHouse: @houseData[selectedHouse].title</h6>
-                <p>
-                    @houseData[selectedHouse].street, @houseData[selectedHouse].postalCode<br />
-                    @if (@houseData[selectedHouse].neighbourhood != "")
-                    {@houseData[selectedHouse].neighbourhood<br>}
-                    <b>@houseData[selectedHouse].price voor @houseData[selectedHouse].area</b>
-                    @if (@houseData[selectedHouse].available != "")
-                    {<span> met @houseData[selectedHouse].bedrooms slaapkamer(s)</span>}<br />
-                    @if (@houseData[selectedHouse].available != "")
-                    {<span>Beschikbaar vanaf @houseData[selectedHouse].available</span>}
-                    @if (@houseData[selectedHouse].placed != "")
-                    {<span>, aangeboden sinds @houseData[selectedHouse].placed</span>}<br />
-                    @if (@houseData[selectedHouse].available != "")
-                    {<span>Extra info: @houseData[selectedHouse].extra</span>}
-                </p>
-                @if (@houseData[selectedHouse].url != "")
-                {<a href=@houseData[selectedHouse].url>Link naar @houseData[selectedHouse].siteName</a>}<br />
-
-                @if (routesCalculated)
-                {
-                    <br /><span>Walking: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Walking"))">View</button><br />@*<span id="walkingRoute">@walkingRouteText</span><br />*@
-                    @foreach (var line in walkingRouteText.Split('\n'))
-                    {@line<br />}
-                    <br /><span>Driving: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Driving"))">View</button><br />@*<span id="drivingRoute">@drivingRouteText</span><br />*@
-                    @foreach (var line in drivingRouteText.Split('\n'))
-                    {@line<br />}
-                    <br /><span>Public transport: </span><button class="btn btn-primary" @onclick="@(() => PlotRoute("Transit"))">View</button><br />@*<span id="transitRoute">@transitRouteText</span>*@
-                    @foreach (var line in transitRouteText.Split('\n'))
-                    {@line<br />}
-                }
-                else
-                {
-                    <button class="btn btn-primary" @onclick="GetRoutes">Calculate travel routes</button>
-                }
-            </div>
-        }
-        <!-- #endregion List of Houses -->
-    }
-    <div id="myMap" @onclick="MouseClicked" style="flex-grow:1">Hi</div>
-    @if (viewSingleHouse)
-    {
-        <div id="printoutPanel" style="overflow:auto; height:500px; width:485px"></div>
-    }
-</div>
 
 
-@statusText
-@*<button class="btn btn-primary" @onclick="TestPin">Add testpin</button>*@
-@*<button class="btn btn-primary" @onclick="SwitchLayer">Switch Layer</button>
-    <button class="btn btn-primary" @onclick="SetChosenHouse">Set chosen house</button>*@
+        @statusText
+        @*<button class="btn btn-primary" @onclick="TestPin">Add testpin</button>*@
+        @*<button class="btn btn-primary" @onclick="SwitchLayer">Switch Layer</button>
+        <button class="btn btn-primary" @onclick="SetChosenHouse">Set chosen house</button>*@

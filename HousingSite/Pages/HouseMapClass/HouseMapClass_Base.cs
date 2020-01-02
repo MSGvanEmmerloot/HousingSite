@@ -22,9 +22,12 @@ namespace HousingSite.Pages
         [Inject]
         protected MapService MappingService { get; set; }
 
+        #region Variables
         protected JsInterop jsInterop;
 
-        #region Variables
+        public enum WindowOptions { SearchOptions, MapOptions, RuleOptions };
+        protected WindowOptions selectedWindowOption = WindowOptions.SearchOptions;
+
         private string sessionKey = "";
         private string[] userPinCoords = null;
         private string mapClicked = null;
@@ -104,15 +107,49 @@ namespace HousingSite.Pages
             public int bedrooms;
         }
         public SearchParams lastSearchParams;
+
+        public enum ColorOptions { green, yellow, red };
+        protected static string[] colorStrings = new string[3] { "Green", "Yellow", "Red" };
+        public enum ConditionOptions { below, above, between };
+        protected static string[] conditionStrings = new string[3] { "Below", "Above", "Between" };
+        public enum RuleParamOptions { price, area };
+        protected static string[] ruleParamStrings = new string[2] { "Renting price", "Area" };
+
+        protected double testPrice = 400;
+        protected double testArea = 10;
+        protected ColorOptions defaultColor = ColorOptions.green;
+
+        public class RuleParams
+        {
+            public int sequenceNumber;
+            public bool apply;
+            public ColorOptions color;
+            public RuleParamOptions parameter;
+            public ConditionOptions condition;
+
+            public double borderVal1;
+            public double borderVal2;
+
+            public override string ToString()
+            {
+                if (condition == ConditionOptions.between) { return "#" + sequenceNumber + ": apply = " + apply + ",  color = " + color + ", " + parameter + " " + condition + " " + borderVal1 + " and " + borderVal2; }
+                else return "#" + sequenceNumber + ": apply = " + apply + ",  color = " + color + ", " + parameter + " " + condition + " " + borderVal1;
+            }
+        }
+        public List<RuleParams> ruleParams;
         #endregion
 
+        protected override async Task OnInitializedAsync()
+        {       
+            await SetDefaultRules();
+        }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
-                jsInterop = new JsInterop(JSRuntime, this);
-                await JSRuntime.InvokeAsync<string>("loadMapScenario", Credentials.BingMapsKey);
+                //jsInterop = new JsInterop(JSRuntime, this);
+                //await JSRuntime.InvokeAsync<string>("loadMapScenario", Credentials.BingMapsKey);
             }
         }
         
@@ -352,6 +389,153 @@ namespace HousingSite.Pages
             await GetRouteWithMode(houseQueryExtend, place, "Transit");
 
             routesCalculated = true;
-        }        
+        }
+
+        public void ShiftRuleParamList(RuleParams modifiedRule, int newNum)
+        {
+            int curPos = -1;
+            int swapPos = -1;
+            Console.WriteLine("Invoked delegate with " + newNum);
+            if (ruleParams.Contains(modifiedRule))
+            {
+                int curNum = modifiedRule.sequenceNumber;
+                Console.WriteLine("Current num: " + curNum);
+                modifiedRule.sequenceNumber = newNum;
+                RuleParams tempRule = modifiedRule;
+                Console.WriteLine("Yeet " + modifiedRule.sequenceNumber);
+                curPos = ruleParams.IndexOf(modifiedRule);
+                Console.WriteLine("Index of clicked row: " + curPos);
+
+                foreach (RuleParams rule in ruleParams.FindAll(s => s.sequenceNumber == newNum))
+                {
+                    Console.WriteLine(rule);
+                    if (rule != modifiedRule)
+                    {
+                        Console.WriteLine("Woop, found a match!");
+                        swapPos = ruleParams.IndexOf(rule);
+                        rule.sequenceNumber = curNum;
+                        Console.WriteLine("Index of row to swap: " + swapPos);
+
+                        ruleParams[curPos] = rule;
+                        ruleParams[swapPos] = tempRule;
+                        this.StateHasChanged();
+                    }
+                }
+            }
+
+            for (int i = 0; i < ruleParams.Count; i++)
+            {
+                Console.WriteLine("[rule " + i + "] " + ruleParams[i].ToString());
+            }
+        }
+        protected async Task SetDefaultRules()
+        {
+            int priceRange = priceMax - priceMin;
+            double priceStep = priceRange / 3;
+
+            if (priceRange <= 0) { return; }
+
+            if(ruleParams == null)
+            {
+                ruleParams = new List<RuleParams>();
+            }
+            ruleParams.Clear();
+            
+            ruleParams.Add(new RuleParams
+            {
+                apply = true,
+                color = ColorOptions.green,
+                parameter = RuleParamOptions.price,
+                condition = ConditionOptions.below,
+                borderVal1 = priceMin + priceStep,
+                sequenceNumber = 1,
+            });
+            ruleParams.Add(new RuleParams
+            {
+                apply = true,
+                color = ColorOptions.yellow,
+                parameter = RuleParamOptions.price,
+                condition = ConditionOptions.below,
+                borderVal1 = priceMin + (2 * priceStep),
+                sequenceNumber = 2,
+            });
+            ruleParams.Add(new RuleParams
+            {
+                apply = true,
+                color = ColorOptions.red,
+                parameter = RuleParamOptions.price,
+                condition = ConditionOptions.above,
+                borderVal1 = priceMin + (2 * priceStep),
+                sequenceNumber = 3,
+            });
+        }
+
+        protected async Task CheckResultValue()
+        {
+            double price = 20;
+            double area = 5;
+
+            //string res = CheckResult(price, area);
+            string res = CheckResult(testPrice, testArea);
+
+            Console.WriteLine("Result: " + res);
+        }
+
+        private string RetColorFromRule(int ruleIndex)
+        {
+            Console.WriteLine("Rule " + ruleIndex + " met: " + ruleParams[ruleIndex]);
+            return ruleParams[ruleIndex].color.ToString();
+        }
+
+        private string CheckResult(double price, double area)
+        {
+            bool ruleMatch = false;
+
+            for (int rule = 0; rule < ruleParams.Count; rule++)
+            {
+                RuleParams r = ruleParams[rule];
+                if (!r.apply) { continue; }
+                switch (r.condition)
+                {
+                    case ConditionOptions.above:
+                        if (r.parameter == RuleParamOptions.price)
+                        {
+                            ruleMatch = price >= r.borderVal1;
+                        }
+                        else if (r.parameter == RuleParamOptions.area)
+                        {
+                            ruleMatch = area >= r.borderVal1;
+                        }
+                        break;
+                    case ConditionOptions.below:
+                        if (r.parameter == RuleParamOptions.price)
+                        {
+                            ruleMatch = price < r.borderVal1;
+                        }
+                        else if (r.parameter == RuleParamOptions.area)
+                        {
+                            ruleMatch = area < r.borderVal1;
+                        }
+                        break;
+                    case ConditionOptions.between:
+                        if (r.parameter == RuleParamOptions.price)
+                        {
+                            ruleMatch = (price >= r.borderVal1 && price < r.borderVal2) || (price < r.borderVal1 && price >= r.borderVal2);
+                        }
+                        else if (r.parameter == RuleParamOptions.area)
+                        {
+                            ruleMatch = (area >= r.borderVal1 && area < r.borderVal2) || (area < r.borderVal1 && area >= r.borderVal2);
+                        }
+                        break;
+                }
+
+                if (ruleMatch)
+                {
+                    return RetColorFromRule(rule);
+                }
+            }
+
+            return "default";
+        }
     }
 }
